@@ -1,6 +1,7 @@
 // components/AttendanceSheet.jsx
 import { useState, useEffect } from 'react';
 import SearchFilter from './SearchFilter';
+import toast from 'react-hot-toast';
 
 export default function AttendanceSheet({ employees, onBack, onSave, attendanceRecords }) {
   // Default the date to today
@@ -44,10 +45,11 @@ export default function AttendanceSheet({ employees, onBack, onSave, attendanceR
       records: attendance,
     };
     onSave(attendanceData);
+    toast.success("Attendance saved succesfully")
   };
 
   return (
-    <div className="attendance-page p-4">
+    <div className="attendance-page p-4 w-11/12 mx-auto">
       <div className="header flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Attendance</h2>
         <button onClick={onBack} className="bg-gray-500 text-white px-4 py-2 rounded">
@@ -55,25 +57,27 @@ export default function AttendanceSheet({ employees, onBack, onSave, attendanceR
         </button>
       </div>
 
-      <div className="form-group mb-4">
-        <label className="block mb-1">Select Date:</label>
-        <input
-          type="date"
-          value={attendanceDate}
-          onChange={(e) => setAttendanceDate(e.target.value)}
-          className="p-2 border rounded w-full"
-        />
-      </div>
+      <div className="controls-header flex justify-between items-center mb-4 w-full my-auto">
+  <SearchFilter
+    searchTerm={searchTerm}
+    onSearchChange={(e) => setSearchTerm(e.target.value)}
+    filterRole={filterRole}
+    onFilterChange={(e) => setFilterRole(e.target.value)}
+    employees={employees}
+  />
+  <div className="form-group flex items-center mb-4">
+    <label className="mr-2 font-medium">Date:</label>
+    <input
+      type="date"
+      value={attendanceDate}
+      onChange={(e) => setAttendanceDate(e.target.value)}
+      className="p-2 border rounded"
+      max={new Date().toISOString().split("T")[0]}
+    />
+  </div>
+</div>
 
-      {/* Reusable search/filter component */}
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={(e) => setSearchTerm(e.target.value)}
-        filterRole={filterRole}
-        onFilterChange={(e) => setFilterRole(e.target.value)}
-      />
-
-      <table className="attendance-table w-full border-collapse mb-4">
+      <table className="attendance-table w-11/12 border-collapse mb-4 mx-auto">
         <thead>
           <tr className="bg-gray-200">
             <th className="p-2 border">Name</th>
@@ -101,7 +105,7 @@ export default function AttendanceSheet({ employees, onBack, onSave, attendanceR
       </table>
 
       <div className="actions flex justify-end">
-        <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded ">
           Save Attendance
         </button>
       </div>

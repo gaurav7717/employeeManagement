@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mui/material": "^6.4.4",
+    "@mui/styled-engine-sc": "^6.4.3",
     "cra-template": "1.2.0",
+    "employeemanagement": "file:",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-scripts": "5.0.1"
+    "react-hot-toast": "^2.5.2",
+    "react-scripts": "5.0.1",
+    "styled-components": "^6.1.15"
   },
   "scripts": {
     "start": "react-scripts start",
