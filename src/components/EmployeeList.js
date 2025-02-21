@@ -1,26 +1,31 @@
-import { useState } from "react";
-import SearchFilter from "./SearchFilter";
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { deleteEmployee } from '../features/employee/employeeSlice';
+import SearchFilter from './SearchFilter';
 
 export default function EmployeeList({
   employees,
   onAddEmployee,
   onAttendance,
   onEdit,
-  onDelete,
-  onView, // New prop for view action
+  onView
 }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState("all");
+  const dispatch = useDispatch();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
 
-  // Filter employees based on search term and role filter
-  const filteredEmployees = employees.filter((emp) => {
-    const matchesSearch = emp.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "all" || emp.role === filterRole;
+  // Filter logic remains the same
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === 'all' || emp.role === filterRole;
     return matchesSearch && matchesRole;
   });
 
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      dispatch(deleteEmployee(id));
+    }
+  };
   return (
     <div className="employee-list-container p-4 w-11/12 mx-auto">
       <div className="controls-header flex justify-between items-center mb-4">
@@ -199,12 +204,7 @@ export default function EmployeeList({
 
                 {/* Remove Button */}
                 <button
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this employee?")) {
-                      onDelete(emp.id);
-                    }
-                  }}
-                  className="
+                    onClick={() => handleDelete(emp.id)}                  className="
                     inline-flex 
                     items-center 
                     p-2

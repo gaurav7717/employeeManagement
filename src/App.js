@@ -1,125 +1,34 @@
 // App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useGetEmployeesQuery } from './features/employee/employeeApiSlice';
+import { addEmployee, updateEmployee, deleteEmployee } from './features/employee/employeeSlice';
+import { markAttendance } from './features/employee/attendanceSlice';
 import EmployeeList from './components/EmployeeList';
 import EmployeeFormModal from './components/EmployeeFormModal';
 import AttendanceSheet from './components/AttendanceSheet';
-import toast , {Toaster} from 'react-hot-toast';
-function App() {
-  // Demo employee data...
-  const demoEmployees = [
-    {
-      "id": 1,
-      "name": "Alice Johnson",
-      "role": "Front Office",
-      "email": "alice.johnson@example.com",
-      "contact": "1234567890",
-      "address": "123 Main St, City",
-      "joiningDate": "2023-01-15",
-      "leaves": 5
-    },
-    {
-      "id": 2,
-      "name": "Bob Smith",
-      "role": "Support",
-      "email": "bob.smith@example.com",
-      "contact": "2345678901",
-      "address": "456 Elm St, City",
-      "joiningDate": "2023-02-10",
-      "leaves": 3
-    },
-    {
-      "id": 3,
-      "name": "Charlie Davis",
-      "role": "Front Office",
-      "email": "charlie.davis@example.com",
-      "contact": "3456789012",
-      "address": "789 Oak St, City",
-      "joiningDate": "2023-03-05",
-      "leaves": 2
-    },
-    {
-      "id": 4,
-      "name": "Diana Evans",
-      "role": "Management",
-      "email": "diana.evans@example.com",
-      "contact": "4567890123",
-      "address": "101 Pine St, City",
-      "joiningDate": "2022-11-20",
-      "leaves": 8
-    },
-    {
-      "id": 5,
-      "name": "Evan Foster",
-      "role": "IT",
-      "email": "evan.foster@example.com",
-      "contact": "5678901234",
-      "address": "202 Maple Ave, City",
-      "joiningDate": "2023-05-01",
-      "leaves": 4
-    },
-    {
-      "id": 6,
-      "name": "Fiona Garcia",
-      "role": "HR",
-      "email": "fiona.garcia@example.com",
-      "contact": "6789012345",
-      "address": "303 Cedar Rd, City",
-      "joiningDate": "2023-04-15",
-      "leaves": 6
-    },
-    {
-      "id": 7,
-      "name": "George Harris",
-      "role": "Support",
-      "email": "george.harris@example.com",
-      "contact": "7890123456",
-      "address": "404 Birch St, City",
-      "joiningDate": "2023-06-10",
-      "leaves": 1
-    },
-    {
-      "id": 8,
-      "name": "Hannah Ingram",
-      "role": "Front Office",
-      "email": "hannah.ingram@example.com",
-      "contact": "8901234567",
-      "address": "505 Walnut St, City",
-      "joiningDate": "2023-07-01",
-      "leaves": 3
-    },
-    {
-      "id": 9,
-      "name": "Ian Jacobs",
-      "role": "IT",
-      "email": "ian.jacobs@example.com",
-      "contact": "9012345678",
-      "address": "606 Spruce Ln, City",
-      "joiningDate": "2023-08-15",
-      "leaves": 5
-    },
-    {
-      "id": 10,
-      "name": "Jessica King",
-      "role": "Management",
-      "email": "jessica.king@example.com",
-      "contact": "0123456789",
-      "address": "707 Oak St, City",
-      "joiningDate": "2023-09-05",
-      "leaves": 2
-    }
-  ];  
+import toast, { Toaster } from 'react-hot-toast';
 
-  // Global state
-  const [employees, setEmployees] = useState(demoEmployees);
+function App() {
+  const dispatch = useDispatch();
+  const { data: apiEmployees = [], isLoading, isError } = useGetEmployeesQuery();
+  const reduxEmployees = useSelector(state => state.employees.data);
+  const attendanceRecords = useSelector(state => state.attendance.records);
+  
+  // Local state for UI control
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  // "employees" or "attendance"
   const [view, setView] = useState('employees');
-  // New state to track modal mode: "add", "edit", or "view"
   const [employeeModalMode, setEmployeeModalMode] = useState("add");
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
 
-  // --- Employee Handlers ---
+  // Sync API data with Redux store
+  useEffect(() => {
+    if (apiEmployees.length > 0 && reduxEmployees.length === 0) {
+      apiEmployees.forEach(emp => dispatch(addEmployee(emp)));
+    }
+  }, [apiEmployees, dispatch, reduxEmployees.length]);
+
+  // Employee handlers
   const handleOpenAddEmployee = () => {
     setSelectedEmployee(null);
     setEmployeeModalMode("add");
@@ -145,67 +54,58 @@ function App() {
 
   const handleSaveEmployee = (employeeData) => {
     if (selectedEmployee) {
-      // Edit mode: update employee
-      setEmployees((prev) =>
-        prev.map((emp) =>
-          emp.id === selectedEmployee.id ? { ...employeeData, id: selectedEmployee.id } : emp
-        )
-      );
+      dispatch(updateEmployee({ ...employeeData, id: selectedEmployee.id }));
+      toast.success('Employee updated successfully');
     } else {
-      // Add mode: add new employee with unique id
-      setEmployees((prev) => [...prev, { ...employeeData, id: Date.now() }]);
+      dispatch(addEmployee({ ...employeeData, id: Date.now() }));
+      toast.success('Employee added successfully');
     }
     handleCloseEmployeeModal();
   };
 
-  // Attendance handler remains the same...
+  // Attendance handler
   const handleSaveAttendance = (attendanceData) => {
-    setAttendanceRecords((prev) => {
-      const index = prev.findIndex((record) => record.date === attendanceData.date);
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index] = attendanceData;
-        return updated;
-      }
-      return [...prev, attendanceData];
-    });
+    dispatch(markAttendance(attendanceData));
+    toast.success('Attendance saved for session');
     setView('employees');
   };
 
+  if (isLoading) return <div className="loading">Loading employees...</div>;
+  if (isError) return <div className="error">Error loading employees!</div>;
+
   return (
     <div className="app-container">
-        
-      {/* Employee Form Modal (for add/edit/view) */}
+      {/* Employee Form Modal */}
       {isEmployeeModalOpen && (
         <EmployeeFormModal
           isOpen={isEmployeeModalOpen}
           onClose={handleCloseEmployeeModal}
           onSubmit={handleSaveEmployee}
-          employee={selectedEmployee} // prefilled data if editing or viewing
-          mode={employeeModalMode} // Pass the current mode ("add", "edit", or "view")
+          employee={selectedEmployee}
+          mode={employeeModalMode}
         />
       )}
 
       <main className="main-content">
         {view === 'employees' ? (
           <EmployeeList
-            employees={employees}
+            employees={reduxEmployees}
             onAddEmployee={handleOpenAddEmployee}
             onAttendance={() => setView('attendance')}
             onEdit={handleEditEmployee}
-            onDelete={(id) => setEmployees((prev) => prev.filter((emp) => emp.id !== id))}
-            onView={handleViewEmployee} // Pass the new view handler
+            onDelete={(id) => dispatch(deleteEmployee(id))}
+            onView={handleViewEmployee}
           />
         ) : (
           <AttendanceSheet
-            employees={employees}
+            employees={reduxEmployees}
             onBack={() => setView('employees')}
             onSave={handleSaveAttendance}
             attendanceRecords={attendanceRecords}
           />
         )}
       </main>
-      <Toaster />
+      <Toaster position="bottom-right" />
     </div>
   );
 }

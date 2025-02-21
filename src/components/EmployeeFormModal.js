@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useDispatch } from 'react-redux';
 
 export default function EmployeeFormModal({
   isOpen,
@@ -8,6 +9,7 @@ export default function EmployeeFormModal({
   employee,
   mode, // "add", "edit", or "view"
 }) {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: "",
     gender: "male",
@@ -80,7 +82,7 @@ export default function EmployeeFormModal({
       return;
     }
 
-    onSubmit(formData);
+    dispatch(onSubmit(e));
     toast.success("Submitted successfully")
   };
 
